@@ -1,0 +1,58 @@
+Azure Node.js App — Deployment Summary
+=======================================
+
+Runtime Stack
+-------------
+Node.js 20 LTS with Express 4.x. Node.js was chosen because it's one of
+the most widely supported runtimes on Azure App Service, with first-class
+tooling and fast cold starts. Express keeps the application code minimal,
+which keeps the focus on the deployment process rather than the app itself.
+EJS is used as the templating engine to inject environment variable values
+into the HTML page at runtime.
+
+App Service Plan Pricing Tier
+------------------------------
+Free tier (F1). The F1 plan provides 1 GB of memory and 60 CPU minutes
+per day at no cost. It has no custom domain or SSL support and no
+auto-scaling, but it covers everything needed for this project. For
+production use, a B1 (Basic) or P1v3 (Premium) plan would be appropriate.
+
+Deployment Method
+-----------------
+GitHub integration via the Azure Portal Deployment Center. The repository
+was connected under App Service → Deployment Center → GitHub, with the
+main branch set as the production branch. Azure pulls the latest commit
+on every push and rebuilds automatically using Oryx, its built-in build
+system. Oryx detects package.json, runs npm install, and starts the app
+using the "start" script defined in package.json — no manual build
+configuration required.
+
+Startup Command
+---------------
+Azure detects the start script in package.json automatically:
+
+  "scripts": { "start": "node app.js" }
+
+No custom startup command needs to be set in the portal.
+
+Environment Variables Configured
+---------------------------------
+- APP_ENV = production
+- APP_NAME = Azure Node App
+
+Both are set in Configuration → Application Settings in the Azure Portal
+and read at runtime via process.env in app.js.
+
+Monitoring and Scaling Observations
+-------------------------------------
+The Metrics blade shows CPU time, memory working set, requests, and data
+in/out. Log Stream provides real-time console output. Scale Up allows
+moving to a higher pricing tier for more CPU and memory. Scale Out allows
+adding multiple instances for horizontal scaling, which requires at least
+a Basic tier plan.
+
+Deployment Slots
+----------------
+Deployment slots allow code to be staged on a separate URL before swapping
+to production with zero downtime. Requires Standard tier or above, so it
+was reviewed in the portal but not activated on the Free plan.
