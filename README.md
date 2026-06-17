@@ -1,395 +1,381 @@
-# Azure Node.js Deployment
+# Azure Node.js Application Deployment and Architecture Overview
 
-A Node.js Express web application deployed to Microsoft Azure App Service as part of a PaaS cloud deployment project.
+This project demonstrates the deployment of a production-grade Node.js Express application on Microsoft Azure App Service (Platform as a Service). The implementation showcases modern cloud deployment practices, automated CI/CD pipelines, secure application configuration management, monitoring capabilities, and scalability planning.
 
-## Live URL
+## Application URL
 
-🔗 **[https://YOUR-APP-NAME.azurewebsites.net](https://YOUR-APP-NAME.azurewebsites.net)**
-
-> Replace the URL above with your actual Azure App Service URL after deployment.
-
----
-
-## Project Summary
-
-This project covers deploying a web application to Azure App Service (PaaS), configuring environment variables, enabling GitHub-based continuous deployment, and exploring monitoring and scaling options in the Azure portal.
-
-See `summary.txt` for the full writeup on runtime, pricing tier, and deployment method.
+**Live Application:**
+http://nzemikez-agg8fjdffgbbendg.westeurope-01.azurewebsites.net
 
 ---
 
-## Folder Structure
+# Project Structure
 
-```
+```text
 azure-node-app/
-├── app.js                  # Express application entry point
-├── package.json            # Node.js dependencies and start script
-├── .gitignore
+├── .github/workflows/       # GitHub Actions workflows for CI/CD automation
+├── public/                  # Static resources such as CSS and client-side assets
+│   └── style.css            # Application styling
 ├── views/
-│   └── index.ejs           # EJS HTML template
-├── public/                 # Static assets (CSS, images if any)
-├── screenshots/
-│   ├── overview.png        # Azure Portal — App Service Overview blade
-│   └── configuration.png  # Azure Portal — Configuration blade
-├── summary.txt             # Runtime, pricing tier, deployment method
-└── README.md
+│   ├── index.ejs            # Main application template
+│   └── 404.ejs              # Custom error page
+├── app.js                   # Application entry point and routing logic
+├── package.json             # Project dependencies and runtime configuration
+├── summary.txt              # Deployment summary document
+└── README.md                # Project documentation
 ```
 
 ---
 
-## Running Locally
+# Architecture Decisions and Design Rationale
+
+The following architectural choices were made to ensure reliability, maintainability, performance, and cost efficiency.
+
+## 1. Azure App Service Plan – Basic (B1)
+
+The Basic B1 App Service Plan was selected because it provides dedicated computing resources and removes many of the limitations associated with the Free tier.
+
+### Benefits of B1
+
+* Dedicated virtual machine resources improve performance consistency.
+* Supports the **Always On** feature, reducing application cold-start delays.
+* Enables custom domain configuration and SSL certificate support.
+* Allows manual horizontal scaling up to three instances.
+* Integrates seamlessly with Azure monitoring and diagnostics services.
+
+The B1 plan provides a practical balance between functionality and cost for small-to-medium production workloads.
+
+---
+
+## 2. Deployment Region – West Europe
+
+West Europe was chosen as the deployment region due to its strong infrastructure and proximity to European users.
+
+### Advantages
+
+* Reduced latency for users located within Europe.
+* Alignment with European data protection requirements such as GDPR.
+* High service availability and robust networking infrastructure.
+* Strong regional redundancy and Azure service support.
+
+---
+
+## 3. Runtime Environment – Node.js 22 LTS
+
+Node.js 22 Long-Term Support (LTS) was selected as the application runtime.
+
+### Reasons for Selection
+
+* Long-term security updates and maintenance support.
+* Access to modern JavaScript language features.
+* Improved runtime performance through enhancements in the V8 engine.
+* Greater stability for enterprise and production workloads.
+
+---
+
+## 4. Operating System – Linux
+
+The application is hosted on Azure App Service for Linux.
+
+### Advantages of Linux Hosting
+
+* Lower operating costs compared to Windows hosting.
+* Reduced resource overhead.
+* Faster startup times and improved container efficiency.
+* Excellent compatibility with Node.js and npm ecosystems.
+
+---
+
+# Continuous Deployment Using GitHub Actions
+
+Application deployment is automated using GitHub Actions integrated through Azure Deployment Center.
+
+## Deployment Process
+
+### Step 1: Source Control
+
+Push the application code to a GitHub repository.
+
+### Step 2: Configure Deployment Center
+
+1. Open the Azure Portal.
+2. Navigate to the App Service resource.
+3. Select **Deployment Center**.
+4. Choose **GitHub** as the deployment source.
+5. Authenticate GitHub access.
+6. Select the repository and target branch (`main`).
+
+### Step 3: Workflow Generation
+
+Azure automatically creates a GitHub Actions workflow and stores it within the repository under:
+
+```text
+.github/workflows/
+```
+
+### Step 4: Automated Build
+
+Each push to the configured branch triggers the pipeline, which:
+
+* Checks out the repository.
+* Detects the runtime environment using Azure Oryx.
+* Installs required dependencies.
+* Builds the application if necessary.
+
+### Step 5: Deployment
+
+The generated build artifacts are deployed automatically to Azure App Service, minimizing service interruption during updates.
+
+---
+
+# Application Configuration
+
+The application uses environment variables to separate configuration settings from source code.
+
+| Variable | Purpose                            | Production Value |
+| -------- | ---------------------------------- | ---------------- |
+| APP_ENV  | Defines the deployment environment | production       |
+| APP_NAME | Application display name           | Azure Node App   |
+
+## Configuring Environment Variables
+
+1. Open the Azure Portal.
+2. Navigate to the App Service resource.
+3. Select **Configuration** (or **Environment Variables**).
+4. Create a new application setting.
+5. Enter the required key and value.
+6. Save the changes.
+
+Azure automatically restarts the application to apply the updated configuration.
+
+---
+
+# Monitoring and Diagnostics
+
+Continuous monitoring helps identify performance bottlenecks and operational issues before they impact users.
+
+## Azure Metrics
+
+Metrics can be accessed through:
+
+```text
+Azure Portal → App Service → Metrics
+```
+
+Commonly monitored metrics include:
+
+* CPU Utilization
+* Memory Usage
+* Response Time
+* HTTP 5xx Errors
+* Request Count
+
+These metrics assist in evaluating application health and resource consumption.
+
+---
+
+## Real-Time Log Streaming
+
+### Enable Logging
+
+1. Navigate to **App Service Logs**.
+2. Enable **Application Logging (Filesystem)**.
+3. Configure retention settings.
+4. Save changes.
+
+### View Logs
+
+Open the **Log Stream** blade to monitor live application output, including messages generated through `console.log()`.
+
+---
+
+## Application Insights
+
+Application Insights provides advanced observability features.
+
+### Key Features
+
+* **Application Map** for dependency visualization.
+* **Transaction Search** for diagnosing failed requests.
+* **Live Metrics** for real-time performance monitoring.
+* End-to-end request tracing and diagnostics.
+
+Application Insights helps accelerate troubleshooting and performance analysis.
+
+---
+
+# Scaling Strategy
+
+The Basic B1 plan supports both vertical and horizontal scaling approaches.
+
+```mermaid
+graph TD
+    A[B1 App Service Plan] --> B(Scale Up)
+    A --> C(Scale Out)
+
+    B --> B1[Upgrade to B2, B3 or Premium]
+    B1 --> B2[Additional CPU, Memory and Features]
+
+    C --> C1[Increase Instance Count]
+    C1 --> C2[Load Balancer Distributes Traffic]
+```
+
+## Horizontal Scaling (Scale Out)
+
+Horizontal scaling increases the number of running instances.
+
+### Benefits
+
+* Improved handling of concurrent user traffic.
+* Better fault tolerance.
+* Load balancing across multiple servers.
+
+The B1 plan supports manual scaling up to three instances.
+
+### Limitation
+
+Automatic scaling policies are unavailable on B1 and require a Standard (S1) plan or higher.
+
+---
+
+## Vertical Scaling (Scale Up)
+
+Vertical scaling upgrades the resources assigned to the application.
+
+### Typical Upgrade Scenarios
+
+* High memory consumption.
+* CPU bottlenecks.
+* Need for deployment slots.
+* Requirement for automated backups.
+* Requirement for autoscaling functionality.
+
+Examples include upgrading to B2, B3, or Premium tiers.
+
+---
+
+## Scaling Recommendations
+
+### Scale Out When
+
+* Traffic volume increases significantly.
+* CPU utilization remains consistently high.
+* Request latency becomes elevated.
+
+### Scale Up When
+
+* Memory exhaustion occurs.
+* Resource-intensive workloads are introduced.
+* Advanced App Service features are required.
+
+---
+
+## Demonstrating Horizontal Scaling
+
+If subscription resources permit, scaling can be demonstrated as follows:
+
+1. Open the App Service Plan.
+2. Navigate to **Scale Out (App Service Plan)**.
+3. Select **Manual Scale**.
+4. Increase the instance count from 1 to 2 or 3.
+5. Save the configuration.
+6. Capture a screenshot as deployment evidence.
+
+Suggested screenshot location:
+
+```text
+screenshots/scale_out.png
+```
+
+---
+
+# Troubleshooting Common Issues
+
+## Application Startup Failures
+
+### Possible Causes
+
+* Runtime exceptions.
+* Incorrect port configuration.
+* Application crashes during initialization.
+
+### Resolution
+
+* Review Log Stream output.
+* Confirm the application listens on `process.env.PORT`.
+* Fix any reported runtime errors.
+
+---
+
+## Oryx Build Failures
+
+### Possible Causes
+
+* Missing dependencies.
+* Unsupported Node.js version.
+* Incorrect package configuration.
+
+### Resolution
+
+* Review Deployment Center logs.
+* Verify the presence of a valid `start` script.
+* Ensure runtime compatibility between local and Azure environments.
+
+---
+
+## Deployment Updates Not Appearing
+
+### Possible Causes
+
+* Failed GitHub Actions workflow.
+* Deployment still processing.
+* Incorrect deployment branch configuration.
+
+### Resolution
+
+* Review workflow status under GitHub Actions.
+* Verify deployment targets the correct branch.
+* Confirm deployment completion within Azure Portal.
+
+---
+
+## Always On Issues
+
+### Symptoms
+
+The application experiences slow response times after periods of inactivity.
+
+### Resolution
+
+1. Navigate to **Configuration → General Settings**.
+2. Confirm that **Always On** is enabled.
+
+This feature prevents the application from becoming idle and improves responsiveness.
+
+---
+
+# Running the Application Locally
+
+Follow these steps to test the application before deployment.
+
+### Install Dependencies
 
 ```bash
 npm install
+```
+
+### Start the Application
+
+```bash
 npm start
 ```
 
-Visit `http://localhost:3000` in your browser.
+### Access the Application
 
----
-
-## Environment Variables
-
-| Variable   | Purpose                            | Default          |
-|------------|------------------------------------|------------------|
-| `APP_ENV`  | Identifies the runtime environment | `development`    |
-| `APP_NAME` | Display name shown in the UI       | `Azure Node App` |
-
-These are set in Azure Portal under **Configuration → Application Settings**.
-Based on the assessor's feedback, you are not failing because your application does not work. You lost marks because the Azure infrastructure documentation required by the rubric is missing or incomplete.
-
-To move from **45/100 to 60+**, focus on adding the missing Azure evidence and explanations.
-
-## What You Already Have
-
-✅ Functional Node.js/Express application
-
-✅ Successful deployment to Azure App Service
-
-✅ Environment variables configured
-
-✅ GitHub deployment mentioned
-
-✅ README structure and local setup instructions
-
-These areas were positively acknowledged.
-
----
-
-# What You Must Add
-
-## 1. Azure Portal Overview Screenshot
-
-Take a screenshot of:
-
-**Azure Portal → App Service → Overview**
-
-The screenshot should clearly show:
-
-* App Service Name
-* Subscription
-* Resource Group
-* Status (Running)
-* Region
-* URL
-* Runtime Stack (Node.js)
-* App Service Plan
-
-Add it to your repository:
+Open your browser and navigate to:
 
 ```text
-screenshots/
- ├── app-service-overview.png
+http://localhost:3000
 ```
 
----
-
-## 2. Azure Configuration Screenshot
-
-Go to:
-
-```text
-Azure Portal
-→ App Service
-→ Settings
-→ Environment Variables (or Configuration)
-```
-
-Show:
-
-```text
-APP_ENV=production
-APP_NAME=Your App Name
-```
-
-Take a screenshot proving these values exist.
-
-Save as:
-
-```text
-screenshots/
- ├── configuration-blade.png
-```
-
-This directly addresses the assessor's comment:
-
-> "required screenshot of the Azure Portal Configuration blade is missing"
-
----
-
-# 3. Replace Placeholder URL in README
-
-The assessor specifically noted:
-
-> "The live URL is a placeholder."
-
-Instead of:
-
-```md
-https://your-app-name.azurewebsites.net
-```
-
-Use your actual URL:
-
-```md
-https://my-node-app.azurewebsites.net
-```
-
-Add a section:
-
-```md
-## Live Application
-
-Application URL:
-
-https://my-node-app.azurewebsites.net
-
-The application is accessible publicly through HTTPS and can be reached from any web browser.
-```
-
----
-
-# 4. Add Pricing Tier Justification
-
-Create a new README section.
-
-### Example
-
-## App Service Plan and Pricing Tier
-
-The application was deployed using the Azure App Service Free Tier (F1).
-
-Reason for Selection:
-
-* The application is a learning project and does not require production-level performance.
-* F1 allows deployment and testing without additional cost.
-* It provides sufficient resources for a lightweight Node.js application.
-* It is ideal for development, experimentation, and proof-of-concept deployments.
-
-Limitations of F1:
-
-* No autoscaling support.
-* Limited CPU and memory resources.
-* Shared infrastructure.
-* No SLA for production workloads.
-
-For production environments, a Basic (B1) or Standard (S1) tier would be more appropriate because they provide dedicated resources and additional scaling options.
-
----
-
-# 5. Add Region and Operating System Justification
-
-The assessor requested:
-
-> "Provide a written justification for region and operating system."
-
-Add this section.
-
-## Region and Operating System Selection
-
-Region Selected:
-UK South (replace with your actual region)
-
-Reason:
-
-* Provides reliable Azure infrastructure.
-* Offers low latency for users located close to the deployment region.
-* Supports the required App Service features.
-
-Operating System:
-Linux
-
-Reason:
-
-* Node.js applications run efficiently on Linux.
-* Lower resource overhead compared to Windows.
-* Commonly used for cloud-native web applications.
-* Better compatibility with open-source technologies.
-
----
-
-# 6. Add Monitoring Documentation
-
-This is one of the biggest missing sections.
-
-Take screenshots of:
-
-```text
-App Service
-→ Monitoring
-→ Log Stream
-```
-
-and/or
-
-```text
-App Service
-→ Application Insights
-```
-
-Save as:
-
-```text
-screenshots/
- ├── log-stream.png
- ├── application-insights.png
-```
-
-Add documentation:
-
-## Monitoring and Diagnostics
-
-Azure monitoring tools were used to observe application health and performance.
-
-Tools Reviewed:
-
-1. Log Stream
-
-   * Provides real-time application logs.
-   * Useful for troubleshooting deployment and runtime issues.
-
-2. Application Insights
-
-   * Collects telemetry data.
-   * Tracks requests, failures, and application performance.
-   * Helps identify bottlenecks and errors.
-
-Benefits:
-
-* Faster troubleshooting.
-* Visibility into application performance.
-* Improved operational monitoring.
-
----
-
-# 7. Add Scaling Explanation
-
-The assessor specifically said:
-
-> "No actual explanation of the strategy, tier-specific limits, or auto-scaling configuration."
-
-Add:
-
-## Scaling and Optimization
-
-Scaling in Azure App Service can be achieved in two ways:
-
-### Vertical Scaling (Scale Up)
-
-Increase resources such as:
-
-* CPU
-* Memory
-* Storage
-
-Example:
-Move from F1 Free Tier to B1 Basic or S1 Standard.
-
-### Horizontal Scaling (Scale Out)
-
-Increase the number of application instances.
-
-Benefits:
-
-* Improved availability
-* Better handling of high traffic
-* Load distribution across instances
-
-Current Deployment
-
-The application currently uses the F1 Free Tier.
-
-Limitations:
-
-* Single instance only
-* No autoscaling
-* Limited resources
-
-Production Recommendation
-
-For production workloads, the Standard (S1) tier would be preferred because it supports autoscaling and multiple instances.
-
----
-
-# 8. Add Deployment Method Details
-
-The assessor could not see evidence of your deployment process.
-
-Add:
-
-```md
-## Deployment Method
-
-The application was deployed using GitHub Continuous Deployment.
-
-Process:
-
-1. Source code pushed to GitHub.
-2. Azure Deployment Center connected to GitHub repository.
-3. Azure automatically built the application.
-4. Deployment completed successfully.
-5. Application became available through the Azure App Service URL.
-
-Benefits:
-
-- Automated deployments.
-- Reduced manual effort.
-- Consistent release process.
-```
-
----
-
-# Recommended Repository Structure
-
-```text
-Azure-AppService-Project/
-│
-├── app.js
-├── package.json
-├── README.md
-│
-├── screenshots/
-│   ├── app-service-overview.png
-│   ├── configuration-blade.png
-│   ├── log-stream.png
-│   ├── application-insights.png
-│   ├── deployment-success.png
-│
-└── docs/
-    └── azure-summary.md
-```
-
-# Expected Score Improvement
-
-If you add:
-
-* Overview screenshot ✔
-* Configuration screenshot ✔
-* Real URL ✔
-* Pricing tier explanation ✔
-* Region/OS justification ✔
-* Monitoring documentation ✔
-* Scaling explanation ✔
-* Deployment details ✔
-
-you should satisfy nearly every item specifically identified in the feedback and should reasonably move above the **60% pass mark**, assuming the screenshots clearly show the Azure resources and settings requested by the rubric.
+The application should now be running locally and ready for testing.
