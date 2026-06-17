@@ -15,7 +15,7 @@ The solution highlights how Platform as a Service (PaaS) offerings can simplify 
 The deployed application can be accessed through the Azure-hosted endpoint below:
 
 ```text
-http://olamc-agg8fjdffgbbendg.westeurope-01.azurewebsites.net
+http://nzemikez-agg8fjdffgbbendg.westeurope-01.azurewebsites.net
 ```
 
 ---
